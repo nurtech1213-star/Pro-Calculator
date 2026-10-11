@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at top left, #1e1b4b, #0f172a, #020617);
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+        .calc-btn:active {
+            transform: scale(0.95);
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        #history-panel {
+            transition: transform 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-2 sm:p-4">
+
+    <!-- Main Container -->
+    <div class="w-full max-w-md mx-auto glass-panel rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[92vh] max-h-[850px] relative">
+        
+        <!-- Top App Bar with Three Dot Menu -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-700/50 z-20 bg-slate-900/40">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-calculator text-white text-sm"></i>
+                </div>
+                <span id="app-title" class="font-bold text-base tracking-wide text-slate-200">প্রো ক্যালকুলেটর</span>
+            </div>
+
+            <!-- Three Dot Menu -->
+            <div class="relative">
+                <button id="menu-btn" class="w-9 h-9 rounded-full flex items-center justify-center text-slate-300 hover:bg-slate-800/80 transition calc-btn">
+                    <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl py-2 z-50 backdrop-blur-xl">
+                    <button onclick="switchLanguage('bn')" class="w-full text-left px-4 py-2.5 text-sm text-slate-200 hover:bg-indigo-600/20 hover:text-indigo-400 flex items-center space-x-3 transition">
+                        <i class="fa-solid fa-language text-indigo-400"></i>
+                        <span>বাংলা (Bengali)</span>
+                    </button>
+                    <button onclick="switchLanguage('en')" class="w-full text-left px-4 py-2.5 text-sm text-slate-200 hover:bg-indigo-600/20 hover:text-indigo-400 flex items-center space-x-3 transition">
+                        <i class="fa-solid fa-globe text-purple-400"></i>
+                        <span>English</span>
+                    </button>
+                    <div class="border-t border-slate-800 my-1"></div>
+                    <button onclick="toggleHistory()" class="w-full text-left px-4 py-2.5 text-sm text-slate-200 hover:bg-indigo-600/20 hover:text-indigo-400 flex items-center space-x-3 transition">
+                        <i class="fa-solid fa-clock-rotate-left text-emerald-400"></i>
+                        <span id="history-menu-text">ইতিহাস (History)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upper Screen / Preview Section -->
+        <div class="flex-1 px-6 py-4 flex flex-col justify-end bg-gradient-to-b from-transparent to-slate-900/40 relative overflow-hidden z-10">
+            <div class="text-right space-y-2 overflow-hidden">
+                <div id="previous-operand" class="text-slate-400 text-sm sm:text-base font-medium min-h-[24px] truncate"></div>
+                <div id="current-operand" class="text-3xl sm:text-5xl font-bold text-white tracking-wider truncate drop-shadow-md">0</div>
+            </div>
+        </div>
+
+        <!-- History Modal Drawer -->
+        <div id="history-panel" class="absolute inset-x-0 top-[73px] bottom-0 bg-slate-950/95 backdrop-blur-2xl z-40 p-5 flex flex-col transform translate-y-full shadow-2xl">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                <h3 id="history-title" class="font-bold text-slate-200 text-base">হিসাবের ইতিহাস</h3>
+                <button onclick="toggleHistory()" class="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div id="history-list" class="flex-1 overflow-y-auto py-3 space-y-2.5 text-sm text-slate-300">
+                <p id="no-history" class="text-center text-slate-500 mt-12">কোনো ইতিহাস নেই</p>
+            </div>
+            <button onclick="clearHistory()" id="clear-history-btn" class="w-full py-3 mt-2 bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 rounded-xl font-medium transition text-sm">মুছে ফেলুন (Clear History)</button>
+        </div>
+
+        <!-- Lower Keypad Section -->
+        <div class="p-4 sm:p-6 bg-slate-900/60 border-t border-slate-800/80 rounded-t-3xl backdrop-blur-md z-20">
+            <div class="grid grid-cols-4 gap-2.5 sm:gap-3.5">
+                
+                <!-- Row 1 -->
+                <button onclick="clearAll()" class="calc-btn py-3.5 rounded-2xl bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 font-semibold text-base transition">AC</button>
+                <button onclick="deleteDigit()" class="calc-btn py-3.5 rounded-2xl bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 font-semibold text-base transition"><i class="fa-solid fa-delete-left"></i></button>
+                <button onclick="appendOperator('%')" class="calc-btn py-3.5 rounded-2xl bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 font-semibold text-base transition">%</button>
+                <button onclick="appendOperator('/')" class="calc-btn py-3.5 rounded-2xl bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 font-semibold text-lg transition">÷</button>
+
+                <!-- Row 2 -->
+                <button onclick="appendNumber('7')" id="btn-7" class="calc-btn py-3.5 rounded-2xl bg-slate-800/80 text-slate-200 hover:bg-slate-700 font-semibold text-lg transition shadow-sm">৭</button>
+                <button onclick="appendNumber('8')" id="btn-8" class="calc-btn py-3.5 rounded-2xl bg-slate-800/80 text-slate-200 hover:bg-slate-700 font-semibold text-lg transition shadow-sm">৮</button>
+                <button onclick="appendNumber('9')" id="btn-9" class="calc-btn py-3.5 rounded-2xl bg-slate-800/80 text-slate-200 hover:bg-slate-700 font-semibold text-lg transition shadow-sm">৯</button>
+                <button onclick="appendOperator('*')" class="calc-btn py-3.5 rounded-2xl bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 font-semibold text-lg transition">×</button>
+
+                <!-- Row 3 -->
+                <button onclick="appendNumber('4')" id="btn-4" class="calc-btn py-3.5 rounded-2xl bg-slate-800/80 text-slate-200 hover:bg-slate-700 font-semibold text-lg transition shadow-sm">৪</button>
+                <button onclick="appendNumber('5')" id="btn-5" class="calc-btn py-3.5 rounded-2xl bg-slate-800/80 text-slate-200 hover:bg-slate-700 font-semibold text-lg transition shadow-sm">৫</button>
+                <button onclick="appendNumber('6')" id="btn-6" class="calc-btn py-3.5 rounded-2xl bg-slate-800/80 text-slate-200 hover:bg-slate-700 font-semibold text-lg transition shadow-sm">৬</button>
+                <button onclick="appendOperator('-')" class="calc-btn py-3.5 rounded-2xl bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 font-semibold text-lg transition">-</button>
+
+                <!-- Row 4 -->
+                <button onclick="appendNumber('1')" id="btn-1" class="calc-btn py-3.5 rounded-2xl bg-slate-800/80 text-slate-200 hover:bg-slate-700 font-semibold text-lg transition shadow-sm">১</button>
+                <button onclick="appendNumber('2')" id="btn-2" class="calc-btn py-3.5 rounded-2xl bg-slate-800/80 text-slate-200 hover:bg-slate-700 font-semibold text-lg transition shadow-sm">২</button>
+                <button onclick="appendNumber('3')" id="btn-3" class="calc-btn py-3.5 rounded-2xl bg-slate-800/80 text-slate-200 hover:bg-slate-700 font-semibold text-lg transition shadow-sm">৩</button>
+                <button onclick="appendOperator('+')" class="calc-btn py-3.5 rounded-2xl bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 font-semibold text-lg transition">+</button>
+
+                <!-- Row 5 -->
+                <button onclick="appendNumber('0')" id="btn-0" class="calc-btn py-3.5 rounded-2xl bg-slate-800/80 text-slate-200 hover:bg-slate-700 font-semibold text-lg transition shadow-sm col-span-2">০</button>
+                <button onclick="appendDecimal('.')" class="calc-btn py-3.5 rounded-2xl bg-slate-800/80 text-slate-200 hover:bg-slate-700 font-semibold text-lg transition shadow-sm">.</button>
+                <button onclick="compute()" class="calc-btn py-3.5 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white hover:from-indigo-500 hover:to-purple-500 font-semibold text-xl transition shadow-lg shadow-indigo-600/30">=</button>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Custom Notification Box -->
+    <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-900 border border-slate-700 text-slate-200 px-5 py-3 rounded-2xl shadow-2xl opacity-0 pointer-events-none transition-all duration-300 z-50 text-sm"></div>
+
+    <script>
+        let currentOperandText = '0';
+        let previousOperandText = '';
+        let operation = null;
+        let resetScreen = false;
+        let currentLang = 'bn';
+        let history = [];
+
+        const bnDigits = {'0':'০', '1':'১', '2':'২', '3':'৩', '4':'৪', '5':'৫', '6':'৬', '7':'৭', '8':'৮', '9':'৯'};
+        const enDigits = {'০':'0', '১':'1', '২':'2', '৩':'3', '৪':'4', '৫':'5', '৬':'6', '৭':'7', '৮':'8', '৯':'9'};
+
+        function toDisplayNumber(numStr) {
+            if (currentLang === 'en') return numStr;
+            let result = '';
+            for (let char of numStr) {
+                result += bnDigits[char] !== undefined ? bnDigits[char] : char;
+            }
+            return result;
+        }
+
+        function toEngineNumber(numStr) {
+            let result = '';
+            for (let char of numStr) {
+                result += enDigits[char] !== undefined ? enDigits[char] : char;
+            }
+            return result;
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+
+        const menuBtn = document.getElementById('menu-btn');
+        const dropdownMenu = document.getElementById('dropdown-menu');
+
+        menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('hidden');
+        });
+
+        window.addEventListener('click', () => {
+            if (!dropdownMenu.classList.contains('hidden')) {
+                dropdownMenu.classList.add('hidden');
+            }
+        });
+
+        function switchLanguage(lang) {
+            currentLang = lang;
+            const appTitle = document.getElementById('app-title');
+            const historyMenuText = document.getElementById('history-menu-text');
+            const historyTitle = document.getElementById('history-title');
+            const clearHistoryBtn = document.getElementById('clear-history-btn');
+
+            // Update keypad labels dynamically
+            for (let i = 0; i <= 9; i++) {
+                const btn = document.getElementById(`btn-${i}`);
+                if (btn) {
+                    btn.innerText = lang === 'bn' ? bnDigits[i.toString()] : i.toString();
+                }
+            }
+
+            if (lang === 'bn') {
+                appTitle.innerText = "প্রো ক্যালকুলেটর";
+                historyMenuText.innerText = "ইতিহাস (History)";
+                historyTitle.innerText = "হিসাবের ইতিহাস";
+                clearHistoryBtn.innerText = "মুছে ফেলুন (Clear History)";
+            } else {
+                appTitle.innerText = "Pro Calculator";
+                historyMenuText.innerText = "History";
+                historyTitle.innerText = "Calculation History";
+                clearHistoryBtn.innerText = "Clear History";
+            }
+            updateDisplay();
+            renderHistory();
+        }
+
+        function toggleHistory() {
+            const panel = document.getElementById('history-panel');
+            panel.classList.toggle('translate-y-full');
+            dropdownMenu.classList.add('hidden');
+        }
+
+        function clearHistory() {
+            history = [];
+            renderHistory();
+        }
+
+        function appendNumber(number) {
+            // number parameter is standard string '0'-'9'
+            if (currentOperandText === '0' || resetScreen) {
+                currentOperandText = number;
+                resetScreen = false;
+            } else {
+                currentOperandText += number;
+            }
+            updateDisplay();
+        }
+
+        function appendDecimal(dot) {
+            if (resetScreen) {
+                currentOperandText = '0';
+                resetScreen = false;
+            }
+            if (!currentOperandText.includes(dot)) {
+                currentOperandText += dot;
+            }
+            updateDisplay();
+        }
+
+        function appendOperator(op) {
+            if (operation !== null) compute();
+            previousOperandText = currentOperandText + ' ' + op;
+            operation = op;
+            resetScreen = true;
+            updateDisplay();
+        }
+
+        function compute() {
+            if (operation === null || resetScreen) return;
+            let prev = parseFloat(toEngineNumber(previousOperandText));
+            let current = parseFloat(toEngineNumber(currentOperandText));
+            let computation;
+
+            if (isNaN(prev) || isNaN(current)) return;
+
+            switch (operation) {
+                case '+':
+                    computation = prev + current;
+                    break;
+                case '-':
+                    computation = prev - current;
+                    break;
+                case '*':
+                    computation = prev * current;
+                    break;
+                case '/':
+                    if (current === 0) {
+                        showToast(currentLang === 'bn' ? 'শূন্য দিয়ে ভাগ করা যায় না' : 'Cannot divide by zero');
+                        clearAll();
+                        return;
+                    }
+                    computation = prev / current;
+                    break;
+                case '%':
+                    computation = (prev * current) / 100;
+                    break;
+                default:
+                    return;
+            }
+
+            let fullExpression = previousOperandText + ' ' + currentOperandText + ' =';
+            let resultStr = parseFloat(computation.toFixed(8)).toString();
+
+            history.unshift({ expr: fullExpression, res: resultStr });
+            if (history.length > 20) history.pop();
+            renderHistory();
+
+            previousOperandText = fullExpression;
+            currentOperandText = resultStr;
+            operation = null;
+            resetScreen = true;
+            updateDisplay();
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            if (history.length === 0) {
+                list.innerHTML = `<p class="text-center text-slate-500 mt-12">${currentLang === 'bn' ? 'কোনো ইতিহাস নেই' : 'No history available'}</p>`;
+                return;
+            }
+            list.innerHTML = history.map(item => `
+                <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
+                    <div class="text-xs text-slate-400">${item.expr}</div>
+                    <div class="text-base font-bold text-slate-100">${toDisplayNumber(item.res)}</div>
+                </div>
+            `).join('');
+        }
+
+        function clearAll() {
+            currentOperandText = '0';
+            previousOperandText = '';
+            operation = null;
+            resetScreen = false;
+            updateDisplay();
+        }
+
+        function deleteDigit() {
+            if (currentOperandText.length === 1 || resetScreen) {
+                currentOperandText = '0';
+            } else {
+                currentOperandText = currentOperandText.slice(0, -1);
+            }
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            document.getElementById('current-operand').innerText = toDisplayNumber(currentOperandText);
+            document.getElementById('previous-operand').innerText = previousOperandText;
+        }
+    </script>
+</body>
+</html>
